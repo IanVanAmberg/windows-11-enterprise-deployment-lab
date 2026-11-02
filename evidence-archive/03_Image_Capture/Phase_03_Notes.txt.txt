@@ -1,0 +1,716 @@
+================================================================
+WINDOWS 11 ENTERPRISE WORKSTATION IMAGING,
+DEPLOYMENT, AND VALIDATION LAB
+================================================================
+
+PROJECT AUTHOR: Ian Van Amberg
+PROJECT TYPE: Self-Directed IT Support Portfolio Lab
+ORGANIZATION: Northstar Office Solutions (Simulated)
+ENVIRONMENT: Oracle VirtualBox / Non-Production
+DATE: October 31, 2026
+PHASE: 03 - Image Preparation and Capture
+STATUS: Image Capture and Metadata Verification Completed
+
+================================================================
+01. PHASE OBJECTIVE
+================================================================
+
+Prepare a configured Windows 11 Enterprise reference
+workstation for generalized imaging, then capture and
+verify a reusable Windows Imaging Format (WIM) file.
+
+The phase included:
+
+- Dedicated image storage provisioning
+- Virtual disk identification and partition management
+- NTFS volume configuration
+- Windows PE creation and boot validation
+- BitLocker encryption assessment and remediation
+- Windows Audit Mode and Sysprep generalization
+- Offline operating system image capture
+- DISM failure diagnosis and troubleshooting
+- WIM image metadata verification
+- Safe preservation of the reference workstation
+
+All operations were conducted in an isolated, simulated
+IT support environment using virtual disks.
+
+================================================================
+02. ENVIRONMENT AND STORAGE CONFIGURATION
+================================================================
+
+REFERENCE WORKSTATION:
+
+Virtual Machine: NS-REF-01
+Virtualization Platform: Oracle VirtualBox
+Operating System: Windows 11 Enterprise Evaluation
+Windows Version: 26H2
+OS Build: 26300.9457
+Architecture: x64
+Firmware: UEFI
+Secure Boot: Enabled
+Virtual TPM: 2.0
+
+SOURCE SYSTEM DISK:
+
+Virtual Disk: NS-REF-01.vdi
+Capacity: 80 GB
+Partition Style: GPT
+Purpose: Reference Windows installation
+
+IMAGE STORAGE DISK:
+
+Virtual Disk: NS-ImageStore-50GB.vdi
+Capacity: 50 GB
+Allocation: Dynamically Allocated
+Partition Style: GPT
+File System: NTFS
+Volume Label: NS-IMAGESTORE
+
+Drive Letter in Audit Mode: S:
+Drive Letter in Windows PE: D:
+
+Image Directory: D:\Images
+Scratch Directory: D:\Scratch
+
+RESULT: VERIFIED
+
+================================================================
+03. IMAGE STORAGE DISK PREPARATION
+================================================================
+
+A separate 50 GB virtual hard disk was created using
+VirtualBox's virtual media management functionality.
+
+The disk was attached to NS-REF-01 on SATA Port 2.
+
+Windows PowerShell was used to identify and initialize
+the disk.
+
+Disk 0:
+80 GB / GPT / Windows system disk
+
+Disk 1:
+50 GB / Initially RAW / Image storage disk
+
+Disk 1 was initialized using GPT.
+
+A Microsoft Reserved Partition of approximately
+16 MB was present after initialization.
+
+A separate basic data partition was created using
+the remaining available space.
+
+The data partition was assigned drive letter S:
+and formatted as NTFS.
+
+Volume Label: NS-IMAGESTORE
+Final Volume Capacity: Approximately 49.98 GB
+Operational Status: OK
+Health Status: Healthy
+
+RESULT: PASSED
+
+================================================================
+04. STORAGE WRITE VALIDATION
+================================================================
+
+The following directory was created:
+
+S:\Images
+
+A storage verification file was created:
+
+S:\Images\Storage_Test.txt
+
+Expected File Content:
+
+Northstar image storage write test - PASSED
+
+The file was read successfully using PowerShell.
+
+Storage accessibility was subsequently verified from
+Windows PE using the D: drive assignment.
+
+RESULT: PASSED
+
+================================================================
+05. VIRTUALIZATION SOFTWARE ASSESSMENT
+================================================================
+
+VirtualBox Guest Additions was installed on the
+reference workstation.
+
+Service Name: VBoxService
+Service Status: Running
+Startup Type: Automatic
+
+Guest Additions was retained because both the reference
+workstation and the target workstation are intended to
+operate using similar VirtualBox virtual hardware.
+
+LIMITATION:
+
+This image is intended for the simulated VirtualBox
+environment. Compatibility with arbitrary physical
+workstation hardware has not been established.
+
+================================================================
+06. BITLOCKER READINESS ASSESSMENT
+================================================================
+
+During pre-imaging validation, BitLocker encryption
+activity was detected on the Windows system volume.
+
+INITIAL OBSERVATION:
+
+Volume: C:
+Conversion Status: Encryption in Progress
+Percentage Encrypted: 91.9%
+Encryption Method: XTS-AES 128
+Protection Status: Protection Off
+
+The volume was unlocked but not fully decrypted.
+
+CORRECTIVE ACTION:
+
+The following command was executed inside the VM:
+
+manage-bde -off C:
+
+FINAL VERIFICATION:
+
+C: Conversion Status: Fully Decrypted
+C: Percentage Encrypted: 0.0%
+C: Protection Status: Protection Off
+
+S: Conversion Status: Fully Decrypted
+S: Percentage Encrypted: 0.0%
+S: Protection Status: Protection Off
+
+The results were reverified before Sysprep.
+
+FINAL STATUS: RESOLVED
+
+================================================================
+07. NETWORK ISOLATION
+================================================================
+
+The VirtualBox Ethernet adapter remained installed
+but disconnected during reference image preparation.
+
+Observed Adapter:
+Intel(R) PRO/1000 MT Desktop Adapter
+
+Observed Status:
+Disconnected
+
+This configuration reduced the possibility of
+unexpected application updates during preparation.
+
+RESULT: PASSED
+
+================================================================
+08. WINDOWS PE BOOT VALIDATION
+================================================================
+
+A previously created Windows PE ISO was attached
+to the virtual optical drive.
+
+Boot Media:
+WinPE_amd64.iso
+
+Boot Method:
+VirtualBox UEFI Boot Manager
+
+The Windows PE environment successfully loaded.
+
+Command Prompt:
+
+X:\Windows\System32>
+
+Windows PE recognized both virtual hard disks.
+
+Disk 0: 80 GB GPT source disk
+Disk 1: 50 GB GPT image storage disk
+
+The following drive assignments were observed:
+
+C: Windows reference partition
+D: NS-IMAGESTORE data partition
+E: Windows PE optical media
+X: Windows PE RAM environment
+
+The reference deployment profile was readable
+from the offline Windows partition.
+
+The storage test file was readable from D:\Images.
+
+RESULT: PASSED
+
+================================================================
+09. UEFI BOOT CONFIGURATION
+================================================================
+
+The VirtualBox UEFI firmware boot order was modified
+to prioritize the virtual optical drive.
+
+Configured Priority:
+
+1. UEFI VBOX CD-ROM
+2. Windows Boot Manager
+3. UEFI VBOX HARDDISK
+4. UEFI VBOX HARDDISK
+5. UEFI PXEv4
+6. UEFI PXEv6
+
+This configuration was used to boot Windows PE
+following Sysprep shutdown.
+
+The generalized Windows installation was not
+intentionally started before image capture.
+
+RESULT: PASSED
+
+================================================================
+10. SYSPREP GENERALIZATION
+================================================================
+
+The reference workstation was prepared using
+Microsoft System Preparation Tool 3.14.
+
+Selected Configuration:
+
+System Cleanup Action:
+Enter System Out-of-Box Experience (OOBE)
+
+Generalize:
+Enabled
+
+Shutdown Options:
+Shutdown
+
+Following execution, the virtual machine entered
+the Powered Off state.
+
+The next startup successfully loaded Windows PE.
+
+SYSPREP LOG VERIFICATION:
+
+Log Directory:
+
+C:\Windows\System32\Sysprep\Panther
+
+Success Marker:
+
+C:\Windows\System32\Sysprep\Sysprep_succeeded.tag
+
+A log entry timestamped 2026-10-31 17:20:32
+confirmed successful creation of the Sysprep
+completion marker.
+
+UEFI/BCD-related errors were also observed shortly
+before the success marker was created.
+
+The image was captured successfully, but the boot
+configuration of the future deployment workstation
+must be independently validated.
+
+RESULT: GENERALIZATION COMPLETION SUPPORTED
+OUTSTANDING: TARGET BOOT VALIDATION
+
+================================================================
+11. INITIAL DISM IMAGE CAPTURE
+================================================================
+
+The generalized Windows installation was booted
+offline using Windows PE.
+
+The initial capture command used:
+
+DISM /Capture-Image
+/ImageFile:"D:\Images\NS-W11-ENT-BASE-01.wim"
+/CaptureDir:C:
+/Name:"NS-W11-ENT-BASE-01"
+/Compress:max
+/CheckIntegrity
+/Verify
+
+The image capture reached 48% before failing.
+
+OBSERVED ERROR:
+
+Error: 112
+There is not enough space on the disk.
+
+HRESULT: 0x80070070
+
+The operation did not complete successfully.
+
+================================================================
+12. DISM ERROR 112 TROUBLESHOOTING
+================================================================
+
+INCIDENT ID: IMG-001
+CATEGORY: Operating System Imaging
+SEVERITY: Deployment Process Blocker
+STATUS: RESOLVED
+
+SYMPTOM:
+
+DISM failed during offline WIM capture at 48%.
+
+ERROR:
+
+112 - Insufficient disk space
+
+INVESTIGATION:
+
+The DISM log was inspected for relevant errors.
+
+The destination image storage volume was checked
+for capacity and incomplete image files.
+
+Observed D: Free Space:
+53,570,576,384 bytes
+
+No incomplete WIM remained in D:\Images.
+
+The WinPE X: RAM environment had approximately
+532,799,488 bytes of available space.
+
+The temporary directory was:
+
+X:\Windows\TEMP
+
+ASSESSMENT:
+
+The destination disk had sufficient available space.
+
+Limited WinPE temporary working space was identified
+as a plausible contributing factor.
+
+ROOT CAUSE STATUS:
+
+Not conclusively isolated. The successful correction
+supports the scratch-space hypothesis.
+
+CORRECTIVE ACTION:
+
+A dedicated scratch directory was created:
+
+D:\Scratch
+
+The capture was retried using:
+
+/ScratchDir:D:\Scratch
+
+A persistent DISM log was configured:
+
+/LogPath:D:\Images\Capture_Retry.log
+
+RESULT:
+
+The retry reached 100% completion.
+
+DISM reported:
+
+The operation completed successfully.
+
+FINAL STATUS: RESOLVED
+
+================================================================
+13. SUCCESSFUL IMAGE CAPTURE
+================================================================
+
+Image Filename:
+NS-W11-ENT-BASE-01.wim
+
+Image Path:
+D:\Images\NS-W11-ENT-BASE-01.wim
+
+Image Source:
+C:\
+
+Compression:
+Maximum
+
+Integrity Checking:
+Enabled
+
+Additional Verification:
+Enabled
+
+Dedicated Scratch Directory:
+D:\Scratch
+
+Capture Result:
+100% Complete
+
+DISM Final Output:
+The operation completed successfully.
+
+RESULT: PASSED
+
+================================================================
+14. CAPTURED WIM METADATA
+================================================================
+
+The captured image was inspected using:
+
+DISM /Get-ImageInfo
+/ImageFile:"D:\Images\NS-W11-ENT-BASE-01.wim"
+/Index:1
+
+VERIFIED IMAGE INFORMATION:
+
+Image Index: 1
+Image Name: NS-W11-ENT-BASE-01
+
+Windows Edition:
+EnterpriseEval
+
+Operating System Version:
+10.0.26300
+
+Service Pack Build:
+9457
+
+Architecture:
+x64
+
+Installation Type:
+Client
+
+System Root:
+WINDOWS
+
+Compressed WIM File Size:
+8,415,340,722 bytes
+
+Approximate Compressed Size:
+7.84 GiB
+
+DISM Reported Image Size:
+28,743,603,686 bytes
+
+Approximate Reported Image Size:
+26.77 GiB
+
+Directory Count:
+35,619
+
+File Count:
+162,929
+
+Image Creation:
+October 31, 2026
+
+DISM Verification Result:
+The operation completed successfully.
+
+The image metadata was readable and consistent
+with the prepared reference workstation.
+
+RESULT: PASSED
+
+================================================================
+15. FINAL SOURCE WORKSTATION STATE
+================================================================
+
+After image capture and metadata verification,
+Windows PE was shut down using:
+
+wpeutil shutdown
+
+VirtualBox Manager confirmed:
+
+NS-REF-01: Powered Off
+
+Attached Storage:
+
+SATA Port 0:
+NS-REF-01.vdi - 80 GB
+
+SATA Port 1:
+WinPE_amd64.iso
+
+SATA Port 2:
+NS-ImageStore-50GB.vdi - 50 GB
+
+The reference workstation remains preserved.
+
+No post-capture boot into the generalized Windows
+installation has been performed.
+
+RESULT: PASSED
+
+================================================================
+16. EVIDENCE REGISTER
+================================================================
+
+P03_01_Capture_Storage_Disk_Created.png
+Dedicated virtual image storage disk.
+
+P03_02_Image_Storage_Disk_Attached.png
+Separate storage disk attachment.
+
+P03_03_Source_Destination_Disk_Identification.png
+Source and destination disk identification.
+
+P03_04_Image_Storage_Initialization.png
+GPT initialization verification.
+
+P03_05_ImageStore_Partition_Created.png
+Data partition creation.
+
+P03_06_ImageStore_NTFS_Format_Verification.png
+NTFS format and volume health.
+
+P03_07_Capture_Storage_Readiness.png
+Storage write test and VBoxService status.
+
+P03_08A_BitLocker_Decryption_Verified.png
+Windows volume decryption verification.
+
+P03_08B_Storage_Network_Readiness.png
+Encryption and network checks.
+
+P03_09_WinPE_Boot_Media_Attached.png
+WinPE media attachment.
+
+P03_10_WinPE_Boot_Verification.png
+Successful Windows PE startup.
+
+P03_11_WinPE_Disk_Volume_Inventory.png
+Offline disk and volume inventory.
+
+P03_12_WinPE_Source_Destination_Access.png
+Image storage access verification.
+
+P03_12A_WinPE_Source_Verification.png
+Reference deployment profile verification.
+
+P03_13_Audit_Mode_Return.png
+Return from WinPE to Windows Audit Mode.
+
+P03_14_Final_PreSysprep_Readiness.png
+Final encryption, storage, and network checks.
+
+P03_15_Final_WinPE_Media_Verification.png
+Final WinPE media attachment.
+
+P03_16_UEFI_Boot_Order_Current.png
+Original UEFI boot order.
+
+P03_16A_UEFI_Boot_Order_Updated.png
+Modified UEFI boot priority.
+
+P03_17_Final_Audit_Mode_PreSysprep.png
+Reference workstation before generalization.
+
+P03_19_PostSysprep_VM_Shutdown.png
+Sysprep shutdown verification.
+
+P03_20_PostSysprep_WinPE_Boot.png
+Offline boot following Sysprep.
+
+P03_21B_Sysprep_Final_Log_Review.png
+Sysprep success marker log evidence.
+
+P03_22_Final_Capture_Disk_Verification.png
+Source and destination verification.
+
+P03_23A_DISM_Error112_Diagnostics.png
+DISM error investigation.
+
+P03_23B_WIM_Destination_Space_Check.png
+Destination free-space assessment.
+
+P03_23C_DISM_Scratch_Directory_Prepared.png
+Dedicated scratch directory preparation.
+
+P03_24_DISM_Image_Capture_Success.png
+Successful WIM capture.
+
+P03_25_Captured_WIM_Verification.png
+DISM image metadata verification.
+
+P03_26_Captured_Image_Safely_Preserved.png
+Final powered-off reference workstation.
+
+NOTE:
+Evidence filenames should match the actual screenshots
+retained in the project directory.
+
+================================================================
+17. LIMITATIONS AND OUTSTANDING ITEMS
+================================================================
+
+The WIM file was successfully captured and its image
+metadata was verified.
+
+However, successful deployment to a second computer
+has not yet been demonstrated.
+
+Remaining validation activities include:
+
+- Preserve and transfer the captured image storage disk
+- Provision a separate deployment virtual machine
+- Initialize a blank target UEFI/GPT disk
+- Create required system and Windows partitions
+- Apply the WIM using DISM
+- Configure Windows boot files using BCDBoot
+- Confirm target workstation boots successfully
+- Complete Windows Out-of-Box Experience
+- Assign a unique computer name
+- Verify deployment profile and support artifacts
+- Validate security settings and device drivers
+- Investigate any post-deployment boot errors
+- Complete workstation handoff documentation
+
+The earlier Sysprep UEFI/BCD error entries will be
+considered during post-deployment boot validation.
+
+Windows 11 Enterprise Evaluation licensing remains
+subject to Microsoft's evaluation restrictions.
+
+================================================================
+18. PHASE 3 CONCLUSION
+================================================================
+
+A generalized Windows 11 Enterprise reference image
+was successfully captured using Windows PE and DISM.
+
+A separate NTFS virtual storage disk was prepared
+to retain the captured WIM.
+
+The reference installation was generalized using
+Sysprep and captured without booting the installed
+Windows environment afterward.
+
+An initial DISM capture failure was investigated,
+a dedicated scratch directory was configured, and
+the subsequent capture completed successfully.
+
+The resulting WIM was verified using DISM image
+metadata inspection.
+
+The reference VM was safely shut down following
+successful image capture.
+
+PHASE 3 RESULT:
+IMAGE CAPTURE AND METADATA VERIFICATION COMPLETED
+
+NEXT PHASE:
+04 - Image Deployment to NS-DEPLOY-01
+
+This work represents a self-directed simulated IT
+support project created by Ian Van Amberg.
+
+It does not represent actual employment, production
+infrastructure deployment, or professional client work.
+
+================================================================
+END OF PHASE 3 TECHNICAL DOCUMENTATION
+================================================================

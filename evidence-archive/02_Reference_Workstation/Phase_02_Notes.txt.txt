@@ -1,0 +1,486 @@
+================================================================
+WINDOWS 11 ENTERPRISE WORKSTATION IMAGING,
+DEPLOYMENT, AND VALIDATION LAB
+================================================================
+
+PROJECT AUTHOR: Ian Van Amberg
+PROJECT TYPE: Self-Directed IT Support Portfolio Lab
+ORGANIZATION: Northstar Office Solutions (Simulated)
+ENVIRONMENT: Virtualized / Non-Production
+DATE: October, 2026
+PHASE: 02 - Reference Workstation Configuration
+STATUS: Technical Configuration Completed
+
+================================================================
+01. PHASE OBJECTIVE
+================================================================
+
+Prepare and validate a standardized Windows 11 Enterprise
+reference workstation for subsequent system generalization,
+image capture, and deployment.
+
+The workstation was created using Oracle VirtualBox and
+configured in Windows Audit Mode.
+
+The phase included:
+
+- Virtual workstation provisioning
+- Windows 11 Enterprise installation
+- Audit Mode configuration
+- Hardware and operating system verification
+- Workstation configuration profile creation
+- Security baseline assessment
+- Device and disk validation
+- System integrity verification
+- Recovery snapshot creation
+
+All activities were performed in a simulated environment.
+
+================================================================
+02. REFERENCE WORKSTATION SPECIFICATIONS
+================================================================
+
+Virtual Machine Name: NS-REF-01
+Virtualization Platform: Oracle VirtualBox
+Operating System: Windows 11 Enterprise Evaluation
+Windows Version: 26H2
+OS Build: 26300.9457
+System Architecture: x64
+
+Allocated Memory: 4096 MB
+Allocated Processors: 2
+Virtual Disk Capacity: 80 GB
+Virtual Disk Format: VDI
+Virtual Disk Allocation: Dynamic
+
+Firmware: UEFI
+Secure Boot: Enabled
+TPM Version: 2.0
+Network Configuration: NAT
+Network Connection: Temporarily Disconnected
+
+RESULT: CONFIGURATION VERIFIED
+
+================================================================
+03. WINDOWS INSTALLATION
+================================================================
+
+The reference workstation was created using a verified
+Windows 11 Enterprise Evaluation installation ISO.
+
+The operating system was installed onto the designated
+80 GB virtual disk.
+
+Windows Setup automatically created the necessary
+operating system partitions.
+
+The installation completed successfully and entered the
+Out-of-Box Experience (OOBE).
+
+RESULT: PASSED
+
+================================================================
+04. WINDOWS AUDIT MODE
+================================================================
+
+Audit Mode was initiated using Ctrl + Shift + F3 from OOBE.
+
+Windows restarted and automatically signed into the
+built-in Administrator account.
+
+The System Preparation Tool (Sysprep) appeared.
+
+The Sysprep dialog was closed without executing
+generalization.
+
+Initial Computer Name: DESKTOP-31G9J27
+Active Account: Built-in Administrator
+
+The initial computer name is temporary and will not be
+used as the final deployed workstation identity.
+
+RESULT: PASSED
+
+================================================================
+05. BASELINE RECOVERY SNAPSHOT
+================================================================
+
+Snapshot Name:
+P02_Baseline_Windows11_Enterprise_AuditMode
+
+The snapshot was created after successful Windows
+installation and Audit Mode verification.
+
+Purpose:
+
+Provide a recovery point before modifying the
+reference workstation configuration.
+
+RESULT: PASSED
+
+================================================================
+06. REFERENCE CONFIGURATION PROFILE
+================================================================
+
+Directory:
+C:\ProgramData\NS-Deployment
+
+Configuration File:
+C:\ProgramData\NS-Deployment\Image_Profile.txt
+
+Profile ID: NS-W11-ENT-BASE-01
+
+Organization: Northstar Office Solutions (Simulated)
+
+The profile identifies the standardized workstation
+image and its intended deployment purpose.
+
+Verification Command:
+
+Get-Content "C:\ProgramData\NS-Deployment\Image_Profile.txt"
+
+The file was successfully read and its expected
+configuration information was displayed.
+
+This file will be checked after image deployment
+to verify configuration preservation.
+
+RESULT: PASSED
+
+================================================================
+07. NETWORK ISOLATION
+================================================================
+
+The virtual network adapter was retained in NAT mode,
+but the Cable Connected option was disabled.
+
+Verification Command:
+
+Get-NetAdapter | Select-Object Name, Status, InterfaceDescription
+
+Observed Adapter:
+Intel(R) PRO/1000 MT Desktop Adapter
+
+Observed Status:
+Disconnected
+
+Purpose:
+
+Reduce unintended network activity and application
+updates during reference image preparation.
+
+RESULT: PASSED
+
+================================================================
+08. WINDOWS SECURITY BASELINE
+================================================================
+
+TPM ASSESSMENT:
+
+TpmPresent: True
+TpmReady: True
+TpmEnabled: True
+TpmActivated: True
+
+RESULT: PASSED
+
+WINDOWS FIREWALL:
+
+Domain Profile: Enabled
+Private Profile: Enabled
+Public Profile: Enabled
+
+RESULT: PASSED
+
+MICROSOFT DEFENDER:
+
+AMServiceEnabled: True
+AntivirusEnabled: True
+RealTimeProtectionEnabled: True
+AntivirusSignatureVersion: 1.437.1.0
+
+RESULT: PASSED
+
+NOTE:
+
+Antivirus definition freshness was not independently
+verified because the workstation was intentionally
+disconnected from the network.
+
+Definition freshness will be reassessed during
+post-deployment validation.
+
+================================================================
+09. DEVICE DRIVER VALIDATION
+================================================================
+
+Verification Command:
+
+Get-PnpDevice -PresentOnly | Where-Object {
+$_.Status -ne "OK"
+} | Select-Object Class, FriendlyName, Status
+
+Observed Result:
+
+The command returned no device entries reporting a
+non-OK status.
+
+No currently present Plug and Play devices were
+identified as having an abnormal status by this check.
+
+RESULT: PASSED
+
+================================================================
+10. DISK AND PARTITION VALIDATION
+================================================================
+
+Virtual Disk Number: 0
+Disk Description: VBOX HARDDISK
+Disk Capacity: 80 GB
+Partition Style: GPT
+Operational Status: Online
+
+PARTITION LAYOUT:
+
+Partition 1:
+Type: System
+Size: 200 MB
+
+Partition 2:
+Type: Reserved
+Size: 16 MB
+
+Partition 3:
+Type: Basic
+Drive Letter: C
+Size: 80,809 MB
+
+Partition 4:
+Type: Recovery
+Size: 892 MB
+
+The partition structure is consistent with a
+standard UEFI/GPT Windows installation.
+
+RESULT: PASSED
+
+================================================================
+11. STANDARDIZED SUPPORT DIRECTORIES
+================================================================
+
+Created the following directories:
+
+C:\Support
+C:\Support\Docs
+C:\Support\Logs
+C:\Support\Tools
+
+Created the following verification artifact:
+
+C:\Support\Docs\Workstation_Readiness.txt
+
+Observed File Size: 697 bytes
+
+Verification Command:
+
+Get-ChildItem -Path "C:\Support" -Recurse
+
+The expected directories and readiness file were
+present in the command output.
+
+These artifacts will be verified after deployment
+to confirm preservation of reference configuration.
+
+RESULT: PASSED
+
+================================================================
+12. WINDOWS SYSTEM INTEGRITY
+================================================================
+
+DISM COMMAND:
+
+DISM /Online /Cleanup-Image /CheckHealth
+
+Observed Result:
+
+No component store corruption detected.
+The operation completed successfully.
+
+RESULT: PASSED
+
+SYSTEM FILE CHECKER COMMAND:
+
+sfc /verifyonly
+
+Observed Result:
+
+Verification 100% complete.
+Windows Resource Protection did not find any
+integrity violations.
+
+RESULT: PASSED
+
+No system repair actions were required based on
+these checks.
+
+================================================================
+13. INSTALLATION TROUBLESHOOTING
+================================================================
+
+OBSERVATION ID: SETUP-002
+CATEGORY: Virtual Workstation Boot
+
+SYMPTOM:
+
+The initial virtual machine startup displayed a
+message requesting a keypress to boot from the
+installation ISO.
+
+After the prompt timed out, the VM reported that
+no bootable operating system was found.
+
+CAUSE:
+
+Windows was not yet installed on the virtual disk,
+and the installation ISO boot prompt had timed out.
+
+CORRECTIVE ACTION:
+
+The VM was restarted and the installation ISO
+boot prompt was acknowledged using the keyboard.
+
+VALIDATION:
+
+Windows Setup loaded successfully.
+Windows installation completed.
+
+FINAL STATUS: RESOLVED
+
+================================================================
+14. PRE-SYSPREP RECOVERY SNAPSHOT
+================================================================
+
+Snapshot Name:
+
+P02_Configured_Reference_PreSysprep
+
+The snapshot was created after completing reference
+workstation configuration and validation.
+
+It preserves:
+
+- Windows 11 Enterprise Audit Mode installation
+- Deployment configuration profile
+- Standardized support directories
+- Workstation readiness file
+- Reference system configuration
+
+The VM was powered off before the snapshot was taken.
+
+RESULT: PASSED
+
+================================================================
+15. PHASE 2 EVIDENCE REGISTER
+================================================================
+
+P02_01_Reference_VM_Configuration.png
+Reference workstation hardware configuration.
+
+P02_02_Reference_VM_Security_Settings.png
+UEFI, TPM, and Secure Boot configuration.
+
+P02_03_Reference_VM_First_Boot.png
+Successful Windows installation media boot.
+
+P02_04_Reference_VM_Disk_Selection.png
+Verified target virtual disk.
+
+P02_05_Windows_Installation_Complete.png
+Completed Windows installation and initial OOBE.
+
+P02_06_Audit_Mode_Entry.png
+Successful Windows Audit Mode entry.
+
+P02_07_Reference_OS_Baseline.png
+Windows version, build, hostname, and account.
+
+P02_08_Reference_Baseline_Snapshot.png
+Initial recovery snapshot.
+
+P02_09_Reference_Network_Isolation.png
+Network adapter connection status.
+
+P02_10_Deployment_Profile_Verification.png
+Reference deployment profile verification.
+
+P02_11_Reference_Security_Baseline.png
+TPM, Firewall, and Defender verification.
+
+P02_12_Device_Driver_Validation.png
+Present-device status assessment.
+
+P02_13_Disk_Partition_Validation.png
+Windows disk partition configuration.
+
+P02_14_Support_Folder_Structure_Verification.png
+Standardized support directory verification.
+
+P02_15_OS_Integrity_Verification.png
+DISM and SFC verification results.
+
+P02_16_Reference_PreSysprep_Snapshot.png
+Configured reference recovery snapshot.
+
+================================================================
+16. OUTSTANDING ITEMS
+================================================================
+
+The following activities remain for subsequent phases:
+
+- Confirm readiness of the captured-image storage method
+- Review reference image for machine-specific additions
+- Perform Sysprep generalization
+- Boot reference workstation into Windows PE
+- Capture Windows partition into a WIM image
+- Verify captured image metadata and integrity
+- Deploy image to a second virtual workstation
+- Configure target computer identity
+- Verify deployed system functionality and security
+- Resolve simulated desktop support incidents
+- Complete the deployment handoff report
+
+VirtualBox Guest Additions status and its implications
+for image portability will be reviewed before capture.
+
+================================================================
+17. PHASE 2 CONCLUSION
+================================================================
+
+The Windows 11 Enterprise reference workstation was
+successfully created, configured, and validated.
+
+Operating system integrity checks passed.
+
+Core security components were enabled.
+
+No abnormal status was detected among currently present
+Plug and Play devices.
+
+The expected UEFI/GPT partition structure was verified.
+
+Reference configuration artifacts were created and
+confirmed present.
+
+Recovery snapshots were preserved before system
+generalization.
+
+The workstation is ready for the Phase 3 preparation
+and image capture workflow, subject to final capture
+storage and image portability checks.
+
+This project represents independent simulated technical
+experience and not professional employment.
+
+================================================================
+END OF PHASE 2 TECHNICAL DOCUMENTATION
+================================================================

@@ -1,0 +1,546 @@
+================================================================
+WINDOWS 11 ENTERPRISE WORKSTATION IMAGING,
+DEPLOYMENT, AND VALIDATION LAB
+================================================================
+
+PROJECT AUTHOR: Ian Van Amberg
+PROJECT TYPE: Self-Directed IT Support Portfolio Lab
+ORGANIZATION: Northstar Office Solutions (Simulated)
+ENVIRONMENT: Oracle VirtualBox / Non-Production
+PHASE: 05 - Post-Deployment Validation & Troubleshooting
+STATUS: Planned Technical Validation Completed
+
+================================================================
+01. PHASE OBJECTIVE
+================================================================
+
+Validate the functionality, security configuration,
+network connectivity, recovery environment, and
+system integrity of a newly deployed Windows 11
+Enterprise workstation.
+
+Target Workstation: NS-DEPLOY-01
+Local Account: NS-LabAdmin
+Operating System: Windows 11 Enterprise Evaluation
+Windows Build: 26300.9457
+Architecture: x64
+
+The workstation was deployed using a generalized
+Windows image captured from NS-REF-01.
+
+This phase focused on verifying successful deployment
+and identifying post-deployment configuration issues.
+
+================================================================
+02. OPERATING SYSTEM AND DEPLOYMENT VERIFICATION
+================================================================
+
+The deployed system successfully completed OOBE,
+reached the Windows desktop, and accepted a local
+administrator account.
+
+Computer Name:
+NS-DEPLOY-01
+
+Windows Edition:
+Windows 11 Enterprise Evaluation
+
+Architecture:
+64-bit
+
+The following deployment files were verified:
+
+C:\ProgramData\NS-Deployment\Image_Profile.txt
+
+C:\Support\Docs\Workstation_Readiness.txt
+
+Both file existence checks returned True.
+
+The files originated from the standardized
+reference workstation image.
+
+RESULT: PASSED
+
+================================================================
+03. TPM SECURITY VALIDATION
+================================================================
+
+PowerShell Command:
+
+Get-Tpm | Select-Object TpmPresent, TpmReady, TpmEnabled
+
+Results:
+
+TpmPresent: True
+TpmReady: True
+TpmEnabled: True
+
+The virtual TPM was detected and operational.
+
+RESULT: PASSED
+
+================================================================
+04. MICROSOFT DEFENDER VALIDATION
+================================================================
+
+PowerShell Command:
+
+Get-MpComputerStatus
+
+Verified Results:
+
+AMServiceEnabled: True
+AntivirusEnabled: True
+RealTimeProtectionEnabled: True
+
+Antivirus Signature Version:
+1.437.1.0
+
+Microsoft Defender antivirus and real-time protection
+were enabled during the initial security audit.
+
+This verifies the reported protection state,
+not the current freshness of antivirus definitions.
+
+RESULT: PASSED
+
+================================================================
+05. WINDOWS FIREWALL VALIDATION
+================================================================
+
+PowerShell Command:
+
+Get-NetFirewallProfile | Select-Object Name, Enabled
+
+Results:
+
+Domain: True
+Private: True
+Public: True
+
+All three Windows Firewall profiles were enabled.
+
+RESULT: PASSED
+
+================================================================
+06. DEVICE DRIVER VALIDATION
+================================================================
+
+PowerShell Command:
+
+Get-PnpDevice -PresentOnly |
+Where-Object {$_.Status -ne "OK"} |
+Select-Object Class, FriendlyName, Status
+
+Result:
+
+No devices were returned by the query.
+
+Interpretation:
+
+No currently present Plug and Play devices
+were reported with a non-OK status.
+
+The result does not represent comprehensive
+physical hardware compatibility testing.
+
+RESULT: PASSED
+
+================================================================
+07. WINDOWS RECOVERY VALIDATION
+================================================================
+
+Command:
+
+reagentc /info
+
+Verified Results:
+
+Windows RE Status:
+Enabled
+
+Recovery Partition:
+Disk 0, Partition 4
+
+Recovery Directory:
+\Recovery\WindowsRE
+
+Windows RE Version:
+10.0.26100.9444
+
+A valid BCD recovery identifier was present.
+
+The dedicated Windows Recovery partition and
+recovery image location were recognized.
+
+Windows Recovery was previously disabled
+during offline deployment configuration.
+
+Following Windows setup, the recovery environment
+was reported as Enabled.
+
+No additional registration repair was required.
+
+RESULT: CONFIGURATION VERIFIED
+
+LIMITATION:
+An actual boot into Windows Recovery was not tested.
+
+================================================================
+08. BITLOCKER CONFIGURATION INVESTIGATION
+================================================================
+
+INCIDENT ID: SEC-001
+CATEGORY: Endpoint Security Configuration
+STATUS: RESOLVED FOR LAB ENVIRONMENT
+
+INITIAL OBSERVATION:
+
+The deployed workstation began encrypting its
+Windows system partition automatically.
+
+Observed Encryption State:
+
+Conversion Status: Encryption in Progress
+Percentage Encrypted: 82.6%, later 82.7%
+Encryption Method: XTS-AES 128
+Protection Status: Protection Off
+Key Protectors: None Found
+
+ASSESSMENT:
+
+Encryption was underway, but the drive was not
+protected by configured BitLocker key protectors.
+
+This was not an acceptable completed encryption
+configuration for a managed production endpoint.
+
+The precise trigger for automatic encryption
+was not independently established.
+
+CORRECTIVE ACTION:
+
+The following command was executed:
+
+manage-bde -off C:
+
+This initiated decryption of the Windows volume.
+
+FINAL VERIFICATION:
+
+Conversion Status: Fully Decrypted
+Percentage Encrypted: 0.0%
+Encryption Method: None
+Protection Status: Protection Off
+Lock Status: Unlocked
+Key Protectors: None Found
+
+OUTCOME:
+
+The unexpected encryption process was stopped
+and the system returned to a fully decrypted state.
+
+NOTE:
+
+For a production enterprise workstation,
+BitLocker should be configured according to
+organizational security policy, with appropriate
+key protectors and securely managed recovery keys.
+
+The lab remediation does not represent a
+production-ready encryption configuration.
+
+RESULT: RESOLVED
+
+================================================================
+09. NETWORK ADAPTER VALIDATION
+================================================================
+
+Following isolated deployment validation,
+the VirtualBox NAT network connection was enabled.
+
+PowerShell Command:
+
+Get-NetAdapter
+
+Observed Adapter:
+
+Intel(R) PRO/1000 MT Desktop Adapter
+
+Interface Name:
+Ethernet
+
+Status:
+Up
+
+RESULT: PASSED
+
+================================================================
+10. IP CONFIGURATION VALIDATION
+================================================================
+
+PowerShell Command:
+
+Get-NetIPConfiguration
+
+Observed Results:
+
+IPv4 Address:
+10.0.2.15
+
+IPv4 Default Gateway:
+10.0.2.2
+
+DNS Server:
+192.168.1.1
+
+An IPv6 address and related configuration
+were also detected.
+
+The workstation successfully obtained
+an IPv4 configuration through its virtual
+network environment.
+
+RESULT: PASSED
+
+================================================================
+11. DNS RESOLUTION VALIDATION
+================================================================
+
+PowerShell Command:
+
+Resolve-DnsName www.microsoft.com -Type A
+
+The command returned DNS information including
+a canonical name record.
+
+Subsequent network testing successfully
+resolved the destination to an IPv4 address.
+
+RESULT: PASSED
+
+================================================================
+12. HTTPS CONNECTIVITY VALIDATION
+================================================================
+
+PowerShell Command:
+
+Test-NetConnection www.microsoft.com -Port 443
+
+Observed Results:
+
+Destination:
+www.microsoft.com
+
+Remote Address:
+23.48.10.36
+
+TCP Port:
+443
+
+TcpTestSucceeded:
+True
+
+The deployed workstation successfully established
+a TCP connection to an external HTTPS endpoint.
+
+This demonstrates external TCP connectivity,
+but does not independently validate web content
+or certificate trust.
+
+RESULT: PASSED
+
+================================================================
+13. WINDOWS COMPONENT STORE INTEGRITY
+================================================================
+
+Command:
+
+DISM /Online /Cleanup-Image /ScanHealth
+
+DISM Version:
+10.0.26100.8972
+
+Windows Image Version:
+10.0.26300.9457
+
+Observed Result:
+
+No component store corruption detected.
+
+The operation completed successfully.
+
+RESULT: PASSED
+
+================================================================
+14. WINDOWS SYSTEM FILE INTEGRITY
+================================================================
+
+Command:
+
+sfc /verifyonly
+
+Observed Results:
+
+Verification 100% complete.
+
+Windows Resource Protection did not find
+any integrity violations.
+
+The verification was performed without
+modifying protected operating system files.
+
+RESULT: PASSED
+
+================================================================
+15. TECHNICAL TROUBLESHOOTING SUMMARY
+================================================================
+
+INCIDENT: SEC-001
+Unexpected BitLocker Encryption
+
+Symptom:
+Automatic encryption began after deployment.
+
+Diagnosis:
+manage-bde showed encryption in progress
+with protection off and no key protectors.
+
+Remediation:
+Disabled BitLocker for the isolated lab
+and allowed the volume to fully decrypt.
+
+Verification:
+0.0% encrypted, Fully Decrypted.
+
+Status:
+Resolved
+
+---------------------------------------------------------------
+
+RECOVERY VALIDATION OBSERVATION:
+
+Windows RE was reported as Disabled during
+offline deployment configuration.
+
+After initial Windows setup, REAgentC reported
+Windows RE Enabled with a registered recovery path.
+
+No further remediation was required.
+
+---------------------------------------------------------------
+
+NETWORK AND OPERATING SYSTEM HEALTH:
+
+The network adapter, IP configuration,
+external TCP connectivity, component store,
+and protected system files passed testing.
+
+No additional repair operations were required.
+
+================================================================
+16. LOGGING AND EVIDENCE
+================================================================
+
+Audit logs were configured at:
+
+C:\Support\Logs\Phase05_Baseline.txt
+
+C:\Support\Logs\Phase05_Final_Validation.txt
+
+Evidence screenshots:
+
+P05_01_Security_Recovery_Audit.png
+Initial TPM, Defender, Firewall, and encryption audit.
+
+P05_02_Drivers_Network_Audit.png
+Device status, network adapter, and deployment files.
+
+P05_03_BitLocker_Remediation.png
+Final fully decrypted Windows system volume.
+
+P05_04_Network_Connectivity.png
+Network configuration, DNS, and HTTPS connectivity.
+
+P05_05_System_Integrity.png
+Successful DISM and SFC verification.
+
+Additional WinRE status evidence was reviewed
+during the technical validation process.
+
+Note:
+Confirm transcript files were successfully
+closed and retained before final publication.
+
+================================================================
+17. VALIDATION LIMITATIONS
+================================================================
+
+All validation was conducted inside Oracle VirtualBox.
+
+The following activities were not demonstrated:
+
+- Deployment to physical enterprise computers
+- Active Directory domain joining
+- Microsoft Intune enrollment
+- Organizational policy application
+- Enterprise BitLocker key management
+- Installation of current Windows security updates
+- Actual recovery boot and restore testing
+- Production network integration
+- Enterprise endpoint monitoring
+
+The tested workstation used Windows 11
+Enterprise Evaluation licensing.
+
+Validation results apply to the simulated
+virtual workstation environment.
+
+================================================================
+18. PHASE 5 CONCLUSION
+================================================================
+
+The deployed Windows 11 Enterprise workstation
+successfully passed the planned operational
+and integrity validation checks.
+
+Confirmed areas included:
+
+Operating System Identity
+Deployment File Preservation
+TPM Readiness
+Microsoft Defender
+Windows Firewall
+Present Device Status
+Windows Recovery Configuration
+BitLocker Remediation
+Network Connectivity
+DNS Resolution
+External TCP Connectivity
+Windows Component Store Integrity
+Protected System File Integrity
+
+An unexpected BitLocker encryption process
+was investigated and resolved for the lab.
+
+DISM and SFC reported no corruption or
+protected-file integrity violations.
+
+The workstation is considered validated for
+the completed simulated deployment tests.
+
+PHASE 5 RESULT:
+PLANNED VALIDATION COMPLETED
+
+NEXT PHASE:
+06 - Portfolio Documentation and Publication
+
+This is a self-directed simulated IT Support
+project by Ian Van Amberg.
+
+It does not represent production IT deployment,
+professional client work, or employment experience.
+
+================================================================
+END OF PHASE 5 TECHNICAL DOCUMENTATION
+================================================================
