@@ -1,0 +1,367 @@
+================================================================
+WINDOWS 11 ENTERPRISE WORKSTATION IMAGING,
+DEPLOYMENT, AND VALIDATION LAB
+================================================================
+
+PROJECT AUTHOR: Ian Van Amberg
+PROJECT TYPE: Self-Directed IT Support Portfolio Lab
+ENVIRONMENT: Simulated Small Business / Virtualized
+DATE: October, 2026
+PROJECT STATUS: Phase 1 Completed
+
+================================================================
+01. PROJECT OVERVIEW
+================================================================
+
+OBJECTIVE:
+
+Simulate the preparation, imaging, deployment, and validation
+of standardized Windows 11 Enterprise workstations.
+
+The project will demonstrate hands-on skills in:
+
+- Host system readiness assessment
+- Windows operating system deployment
+- Virtual machine provisioning
+- Reference workstation configuration
+- Windows image preparation using Sysprep
+- Windows image capture and application using DISM
+- Windows PE deployment environment preparation
+- Operating system verification
+- Post-deployment troubleshooting
+- Technical documentation and workstation handoff
+
+All workstation imaging and deployment operations will occur
+within isolated virtual machines.
+
+================================================================
+02. BUSINESS SCENARIO
+================================================================
+
+A fictional small business requires a standardized Windows 11
+Enterprise workstation image to support the deployment of
+new employee computers.
+
+The technician must configure a reference workstation,
+capture a reusable operating system image, deploy the image
+to a second workstation, and verify its readiness.
+
+The project is an independently conducted simulation.
+It does not represent professional employment experience
+or a production business deployment.
+
+================================================================
+03. PHASE 1 OBJECTIVE
+================================================================
+
+Verify that the host system can support the virtualized
+deployment environment.
+
+Install and configure the software tools required for
+Windows imaging and deployment.
+
+Acquire and verify legitimate Windows installation media.
+
+Prepare bootable Windows PE deployment media.
+
+Document installation results and troubleshooting actions.
+
+================================================================
+04. HOST HARDWARE ASSESSMENT
+================================================================
+
+Host Operating System: Windows 11 Home
+Windows Version: 25H2
+OS Build: 26200.9711
+System Architecture: 64-bit (x64)
+
+Processor: AMD Ryzen 5 2600X
+Physical Cores: 6
+Logical Processors: 12
+Hardware Virtualization: Enabled
+
+Installed Memory: 16.0 GB DDR4
+Usable Memory: 15.9 GB
+Memory Speed: 2133 MHz
+Memory In Use During Assessment: 10.6 GB
+Available Memory During Assessment: 5.3 GB
+
+Primary Storage: NVMe SSD
+Total Storage Capacity: 951 GB
+Available Storage: 488 GB
+
+Graphics: NVIDIA GeForce GTX 1660 Ti
+
+ASSESSMENT:
+
+The host system meets the preliminary resource requirements
+for the planned virtual deployment environment.
+
+Due to elevated host memory utilization, only one Windows
+11 virtual machine will be operated at a time.
+
+Host memory utilization will be reassessed before starting
+the first virtual workstation.
+
+RESULT: PASSED WITH RESOURCE MANAGEMENT PRECAUTIONS
+
+================================================================
+05. VIRTUALIZATION PLATFORM
+================================================================
+
+Software: Oracle VirtualBox
+Platform: Windows x64
+Installation Status: Successful
+Application Launch: Verified
+Exact Installed Version: Pending About dialog verification
+
+VirtualBox Manager launched without visible errors.
+
+The platform will host two separate virtual workstations:
+
+VM 1: Windows 11 Enterprise Reference Workstation
+VM 2: Windows 11 Enterprise Deployment Workstation
+
+RESULT: INITIAL INSTALLATION VERIFIED
+
+================================================================
+06. WINDOWS INSTALLATION MEDIA
+================================================================
+
+Operating System: Windows 11 Enterprise Evaluation
+Edition: Standard Enterprise Evaluation
+Release: 26H2
+Architecture: x64
+Media Format: ISO
+Licensing: Microsoft Evaluation Software
+
+Installation media was downloaded from Microsoft's official
+Evaluation Center and stored in the project directory.
+
+INSTALLATION MEDIA INTEGRITY:
+
+Algorithm: SHA-256
+
+Calculated Hash:
+BC3F24086EBADC94489066B5AD78089E2CF5C3491E90E790BB81A2B199C10E38
+
+Expected Hash:
+BC3F24086EBADC94489066B5AD78089E2CF5C3491E90E790BB81A2B199C10E38
+
+Comparison Result: MATCH
+
+RESULT: INSTALLATION MEDIA VERIFIED
+
+================================================================
+07. WINDOWS ADK INSTALLATION
+================================================================
+
+Software: Windows Assessment and Deployment Kit
+Selected Component: Deployment Tools
+DISM Version Observed: 10.0.26100.9457
+
+Verification Command:
+
+where oscdimg
+
+Result:
+
+The command successfully located oscdimg.exe inside the
+Microsoft Windows Kits Deployment Tools directory.
+
+RESULT: PASSED
+
+================================================================
+08. WINDOWS PE ADD-ON INSTALLATION
+================================================================
+
+Software: Windows Preinstallation Environment Add-on
+Architecture: AMD64 / x64
+
+Verification Commands:
+
+where copype
+
+dir "%ProgramFiles(x86)%\Windows Kits\10\Assessment and Deployment Kit\Windows Preinstallation Environment\amd64\en-us\winpe.wim"
+
+Results:
+
+- copype.cmd successfully located.
+- winpe.wim successfully located.
+- WinPE image size: 340,134,390 bytes.
+
+RESULT: PASSED
+
+================================================================
+09. WINDOWS PE MEDIA PREPARATION
+================================================================
+
+OBJECTIVE:
+
+Create bootable Windows PE deployment media for use in
+the virtual workstation imaging environment.
+
+PROCEDURE:
+
+1. Opened Deployment and Imaging Tools Environment.
+2. Prepared the Windows PE working directory using Copype.
+3. Verified the staged boot.wim image.
+4. Generated bootable ISO using MakeWinPEMedia.
+5. Verified the ISO file was created.
+
+SUCCESSFUL COMMANDS:
+
+copype amd64 "C:\IT-Labs\Windows-11-Enterprise-Deployment-Lab\07_Installation_Media\WinPE_amd64"
+
+MakeWinPEMedia /ISO "C:\IT-Labs\Windows-11-Enterprise-Deployment-Lab\07_Installation_Media\WinPE_amd64" "C:\IT-Labs\Windows-11-Enterprise-Deployment-Lab\07_Installation_Media\WinPE_amd64.iso"
+
+OUTPUT:
+
+ISO Filename: WinPE_amd64.iso
+ISO Size: 398,462,976 bytes
+Media Creation Status: Success
+Boot Test Status: Pending virtual machine testing
+
+RESULT: ISO CREATION PASSED
+
+================================================================
+10. TECHNICAL TROUBLESHOOTING RECORD
+================================================================
+
+INCIDENT ID: SETUP-001
+ISSUE: Windows PE image mounting failure
+
+SYMPTOMS:
+
+The initial Copype operation failed while attempting to
+mount the Windows PE boot.wim image.
+
+The utility reported that the WIM file could not be mounted
+and that staging had failed.
+
+INVESTIGATION:
+
+The DISM mounted-image diagnostic command returned Error 740,
+indicating that elevated permissions were required.
+
+ROOT CAUSE:
+
+Deployment tooling was initially executed without
+administrator privileges.
+
+CORRECTIVE ACTION:
+
+1. Closed the previous command environment.
+2. Reopened Deployment and Imaging Tools Environment
+   with administrator privileges.
+3. Verified DISM execution.
+4. Confirmed no mounted images remained.
+5. Preserved the failed working directory.
+6. Repeated Copype from the elevated environment.
+7. Verified successful staging and boot.wim creation.
+
+VALIDATION:
+
+Copype completed successfully.
+DISM image mounting and unmounting succeeded.
+The required boot.wim file was present.
+
+FINAL STATUS: RESOLVED
+
+LESSON LEARNED:
+
+Windows image servicing operations require appropriate
+administrative privileges. Deployment failures should be
+investigated using error messages, DISM diagnostics,
+and documented corrective actions.
+
+================================================================
+11. SAFETY CONTROLS
+================================================================
+
+- All workstation imaging will occur inside VirtualBox.
+- No physical disks will be selected for deployment.
+- No host partitions will be formatted.
+- Reference and target virtual disks will remain separate.
+- Virtual machine snapshots will be used where appropriate.
+- Deployment commands will be reviewed before execution.
+- Virtual machine resource allocation will account for host
+  memory requirements.
+- Evaluation software will be used under its license terms.
+
+================================================================
+12. PHASE 1 EVIDENCE REGISTER
+================================================================
+
+P01_01_CPU_Virtualization.png
+CPU architecture and virtualization assessment.
+
+P01_02_RAM_Capacity.png
+Installed RAM and current memory utilization.
+
+P01_03_Available_Storage.png
+Host storage capacity assessment.
+
+P01_04_Host_System_Information.png
+Host hardware and system architecture.
+
+P01_04b_Windows_Specifications.png
+Windows edition, version, and OS build.
+
+P01_05_VirtualBox_Installation.png
+Successful launch of VirtualBox Manager.
+
+P01_06_Project_Directory_Structure.png
+Project directory organization.
+
+P01_07_Enterprise_ISO_Download.png
+Windows Enterprise ISO acquisition and storage.
+
+P01_08_ISO_SHA256_Verification.png
+Operating system installation media integrity.
+
+P01_09_ADK_Installation_Verification.png
+Microsoft Deployment Tools availability.
+
+P01_10_WinPE_Addon_Verification.png
+Windows PE Add-on verification.
+
+P01_11A_Copype_Retry_Verification.png
+Successful WinPE working directory preparation.
+
+P01_11_WinPE_ISO_Creation.png
+Successful Windows PE ISO creation.
+
+Note: Screenshots containing host identifiers will be
+redacted before public portfolio publication.
+
+================================================================
+13. PHASE 1 RESULTS
+================================================================
+
+Host Hardware Assessment: PASSED
+Virtualization Readiness: PASSED
+Storage Capacity Assessment: PASSED
+RAM Capacity Assessment: PASSED WITH PRECAUTIONS
+VirtualBox Installation: VERIFIED
+Windows Enterprise ISO: VERIFIED
+ADK Deployment Tools: VERIFIED
+Windows PE Add-on: VERIFIED
+Windows PE ISO Creation: PASSED
+WinPE Boot Testing: PENDING
+Initial Troubleshooting Incident: RESOLVED
+
+PHASE 1 CONCLUSION:
+
+The host system and deployment toolchain have been prepared
+for a self-directed Windows 11 Enterprise imaging lab.
+
+The Windows PE ISO was successfully generated and verified
+to exist on the host filesystem.
+
+The next phase will involve provisioning the reference
+virtual workstation and testing bootable media.
+
+================================================================
+END OF PHASE 1 TECHNICAL DOCUMENTATION
+================================================================

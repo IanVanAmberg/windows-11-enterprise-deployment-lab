@@ -1,0 +1,784 @@
+================================================================
+WINDOWS 11 ENTERPRISE WORKSTATION IMAGING,
+DEPLOYMENT, AND VALIDATION LAB
+================================================================
+
+PROJECT AUTHOR: Ian Van Amberg
+PROJECT TYPE: Self-Directed IT Support Portfolio Lab
+ORGANIZATION: Northstar Office Solutions (Simulated)
+ENVIRONMENT: Oracle VirtualBox / Non-Production
+PHASE: 04 - Windows Image Deployment
+STATUS: Deployment and Initial Boot Completed
+
+================================================================
+01. PHASE OBJECTIVE
+================================================================
+
+Deploy the previously captured Windows 11 Enterprise
+reference image onto a separate virtual workstation.
+
+The deployment process included:
+
+- Provisioning a new Windows 11 virtual workstation
+- Transferring the captured-image storage disk
+- Booting the target workstation into Windows PE
+- Preparing a UEFI/GPT partition layout
+- Applying the captured Windows image using DISM
+- Creating boot files using BCDBoot
+- Configuring a dedicated Windows Recovery partition
+- Completing Windows Out-of-Box Experience
+- Establishing a local administrator account
+- Assigning a standardized computer name
+- Verifying inherited deployment configuration files
+- Preserving a post-deployment baseline snapshot
+
+All work was performed in a simulated, non-production
+environment using virtual machines.
+
+================================================================
+02. SOURCE IMAGE INFORMATION
+================================================================
+
+Reference Workstation:
+NS-REF-01
+
+Captured Image:
+NS-W11-ENT-BASE-01.wim
+
+Image Profile ID:
+NS-W11-ENT-BASE-01
+
+Operating System:
+Windows 11 Enterprise Evaluation
+
+Architecture:
+x64
+
+Windows Version:
+10.0.26300
+
+Image Index:
+1
+
+Compressed WIM Size:
+8,415,340,722 bytes
+
+Approximate Compressed Size:
+7.84 GiB
+
+Source Image Storage:
+NS-ImageStore-50GB.vdi
+
+The WIM was captured and verified during Phase 3.
+
+RESULT: VERIFIED
+
+================================================================
+03. DEPLOYMENT WORKSTATION CONFIGURATION
+================================================================
+
+Virtual Machine:
+NS-DEPLOY-01
+
+Virtualization Platform:
+Oracle VirtualBox
+
+Operating System Type:
+Windows 11 (64-bit)
+
+Allocated Memory:
+4096 MB
+
+Virtual Processors:
+2
+
+Firmware:
+UEFI
+
+Secure Boot:
+Enabled
+
+Virtual TPM:
+2.0
+
+Primary Virtual Hard Disk:
+NS-DEPLOY-01.vdi
+
+Disk Capacity:
+80 GB
+
+Virtual Disk Allocation:
+Dynamically Allocated
+
+Initial Networking:
+NAT Adapter / Cable Disconnected
+
+The workstation was provisioned with a new virtual
+system disk, separate from the original reference VM.
+
+RESULT: PASSED
+
+================================================================
+04. DEPLOYMENT MEDIA CONFIGURATION
+================================================================
+
+The existing image storage disk was detached from
+the powered-off NS-REF-01 workstation.
+
+The disk file was preserved and subsequently attached
+to NS-DEPLOY-01.
+
+Deployment Storage:
+
+NS-DEPLOY-01.vdi
+80 GB / New Target System Disk
+
+NS-ImageStore-50GB.vdi
+50 GB / Captured Windows Image
+
+WinPE_amd64.iso
+Windows Preinstallation Environment Boot Media
+
+The original NS-REF-01.vdi system disk was not
+attached to the deployment workstation.
+
+RESULT: PASSED
+
+================================================================
+05. WINDOWS PE DISK IDENTIFICATION
+================================================================
+
+The deployment workstation successfully booted
+into Windows PE.
+
+Windows PE Command Prompt:
+
+X:\Windows\System32>
+
+DiskPart identified:
+
+DISK 0:
+Capacity: 80 GB
+Status: Online
+Initial State: Uninitialized / Unallocated
+Purpose: Windows Deployment Target
+
+DISK 1:
+Capacity: 50 GB
+Status: Online
+Partition Style: GPT
+Purpose: Captured Image Storage
+
+Observed Drive Assignments:
+
+C: NS-IMAGESTORE
+E: Windows PE Optical Media
+D: Empty Optical Drive
+
+The storage disk containing the WIM was identified
+before performing any partition modifications.
+
+RESULT: PASSED
+
+================================================================
+06. TARGET DISK INITIALIZATION
+================================================================
+
+Disk 0 was selected as the deployment target.
+
+The 80 GB virtual disk was prepared using DiskPart.
+
+Partition Style:
+GPT
+
+Four partitions were created.
+
+PARTITION 1:
+Type: EFI System
+Size: 200 MB
+File System: FAT32
+Volume Label: SYSTEM
+Temporary Drive Letter: S:
+
+PARTITION 2:
+Type: Microsoft Reserved
+Size: 16 MB
+
+PARTITION 3:
+Type: Windows
+Size: Approximately 78 GB
+File System: NTFS
+Volume Label: Windows
+Temporary Drive Letter: W:
+
+PARTITION 4:
+Type: Recovery
+Size: 1600 MB
+File System: NTFS
+Volume Label: Recovery
+Temporary Drive Letter: R:
+
+The partition layout was inspected using:
+
+list partition
+list volume
+
+All formatted volumes reported Healthy status.
+
+The separate 50 GB image storage disk was preserved.
+
+RESULT: PASSED
+
+================================================================
+07. WINDOWS IMAGE APPLICATION
+================================================================
+
+The captured WIM was applied from the image storage
+disk to the newly prepared Windows partition.
+
+Image Source:
+
+C:\Images\NS-W11-ENT-BASE-01.wim
+
+Image Index:
+1
+
+Target Windows Partition:
+W:\
+
+DISM Command:
+
+Dism /Apply-Image /ImageFile:"C:\Images\NS-W11-ENT-BASE-01.wim" /Index:1 /ApplyDir:W:\ /CheckIntegrity /Verify /ScratchDir:C:\Scratch /LogPath:C:\Images\Apply_Image.log
+
+The capture storage disk also provided a dedicated
+DISM scratch directory.
+
+An initial command failed with Error 87 due to a
+missing space between command parameters.
+
+The syntax was corrected without repartitioning
+the target disk or modifying the WIM.
+
+The corrected command completed successfully.
+
+Final DISM Result:
+
+Applying image
+100.0%
+
+The operation completed successfully.
+
+RESULT: PASSED
+
+================================================================
+08. UEFI BOOT FILE CONFIGURATION
+================================================================
+
+After applying the WIM, BCDBoot was used to create
+the required UEFI boot files.
+
+Command:
+
+bcdboot W:\Windows /s S: /f UEFI
+
+Result:
+
+Boot files successfully created.
+
+The following files were verified:
+
+S:\EFI\Microsoft\Boot\BCD
+
+File Size:
+20,480 bytes
+
+S:\EFI\Boot\bootx64.efi
+
+File Size:
+3,087,400 bytes
+
+BCDBoot successfully created the boot configuration
+on the EFI System Partition.
+
+Actual boot functionality was subsequently
+verified during the workstation's first startup.
+
+RESULT: PASSED
+
+================================================================
+09. WINDOWS RECOVERY IMAGE PREPARATION
+================================================================
+
+The deployed Windows installation contained:
+
+W:\Windows\System32\Recovery\Winre.wim
+
+Verified File Size:
+796,822,851 bytes
+
+The recovery image was identified as a hidden and
+system-protected file.
+
+A recovery directory was created:
+
+R:\Recovery\WindowsRE
+
+Initial file-copy attempts encountered command
+parsing errors and difficulty accessing the
+hidden system file.
+
+The file attributes were inspected using:
+
+attrib W:\Windows\System32\Recovery\Winre.wim
+
+The final successful copy used:
+
+xcopy /h /y W:\Windows\System32\Recovery\Winre.wim R:\Recovery\WindowsRE
+
+Result:
+
+1 File(s) copied
+
+The destination file was verified.
+
+Verified Destination Size:
+796,822,851 bytes
+
+RESULT: PASSED
+
+================================================================
+10. WINDOWS RECOVERY REGISTRATION
+================================================================
+
+The recovery image location was registered against
+the offline Windows installation.
+
+Command:
+
+W:\Windows\System32\ReAgentc.exe /setreimage /path R:\Recovery\WindowsRE /target W:\Windows
+
+Result:
+
+REAGENTC.EXE: Operation Successful.
+
+Registered Recovery Path:
+
+\\?\GLOBALROOT\device\harddisk0\partition4\Recovery\WindowsRE
+
+The offline configuration was inspected using:
+
+W:\Windows\System32\ReAgentc.exe /info /target W:\Windows
+
+Observed Windows RE Status:
+Disabled
+
+The Windows RE location field was not yet populated
+in the offline status output.
+
+Recovery functionality remained subject to
+post-deployment validation.
+
+RESULT:
+RECOVERY IMAGE COPIED AND LOCATION REGISTERED
+
+OUTSTANDING:
+VERIFY WINDOWS RE ENABLED AFTER FIRST BOOT
+
+================================================================
+11. RECOVERY PARTITION CONFIGURATION
+================================================================
+
+Disk 0, Partition 4 was configured as a dedicated
+Windows Recovery partition.
+
+Recovery Partition Size:
+1600 MB
+
+GPT Recovery Partition Type:
+
+de94bba4-06d1-4d40-a16a-bfd50179d6ac
+
+GPT Attributes:
+
+0x8000000000000001
+
+DiskPart confirmed:
+
+Partition Type: Recovery
+Hidden: Yes
+Required: Yes
+File System: NTFS
+Volume Health: Healthy
+
+The recovery partition was prepared for normal
+Windows recovery operations.
+
+RESULT: PASSED
+
+================================================================
+12. FIRST BOOT VALIDATION
+================================================================
+
+Windows PE was shut down using:
+
+wpeutil shutdown
+
+The image storage disk was detached without
+deleting its VDI file.
+
+Windows PE installation media was ejected.
+
+The target workstation retained its newly deployed
+80 GB Windows system disk.
+
+NS-DEPLOY-01 was started from its virtual hard disk.
+
+Windows successfully loaded the Out-of-Box Experience.
+
+The country and region selection screen appeared.
+
+The operating system completed initial setup
+and subsequently reached the Windows 11 desktop.
+
+RESULT: PASSED
+
+================================================================
+13. WINDOWS OUT-OF-BOX EXPERIENCE
+================================================================
+
+The deployment workstation was configured with:
+
+Region:
+United States
+
+Keyboard:
+US
+
+Network:
+Initially Disconnected
+
+Account Type:
+Local Administrator Account
+
+Local Username:
+NS-LabAdmin
+
+The initial setup was completed without joining
+an organizational domain or enrolling in a
+production management environment.
+
+Windows successfully reached the desktop.
+
+RESULT: PASSED
+
+================================================================
+14. OPERATING SYSTEM VERIFICATION
+================================================================
+
+The deployed operating system was inspected using:
+
+hostname
+
+whoami
+
+Get-CimInstance Win32_OperatingSystem
+
+Verified Operating System:
+
+Microsoft Windows 11 Enterprise Evaluation
+
+Windows Version:
+10.0.26300
+
+Build Number:
+26300
+
+Architecture:
+64-bit
+
+The deployed Windows edition and build matched
+the expected captured reference image.
+
+RESULT: PASSED
+
+================================================================
+15. DEPLOYMENT FILE INTEGRITY
+================================================================
+
+The standardized deployment profile was verified:
+
+C:\ProgramData\NS-Deployment\Image_Profile.txt
+
+The file contained:
+
+Organization:
+Northstar Office Solutions (Simulated)
+
+Image Profile ID:
+NS-W11-ENT-BASE-01
+
+Operating System:
+Windows 11 Enterprise Evaluation
+
+Deployment Type:
+Standardized Workstation Image
+
+Prepared By:
+Ian Van Amberg
+
+The support readiness document was also verified:
+
+C:\Support\Docs\Workstation_Readiness.txt
+
+PowerShell Test-Path Result:
+True
+
+Both reference configuration artifacts were
+successfully preserved during deployment.
+
+RESULT: PASSED
+
+================================================================
+16. WORKSTATION IDENTITY CONFIGURATION
+================================================================
+
+The computer initially received an automatically
+generated Windows hostname.
+
+The following PowerShell command was used:
+
+Rename-Computer -NewName "NS-DEPLOY-01" -Restart
+
+After restarting, workstation identity was verified.
+
+Hostname:
+NS-DEPLOY-01
+
+Local Account:
+ns-deploy-01\ns-labadmin
+
+Domain/Workgroup:
+WORKGROUP
+
+Domain Membership:
+False
+
+The workstation name now matches the VirtualBox
+deployment workstation identifier.
+
+RESULT: PASSED
+
+================================================================
+17. DEPLOYMENT BASELINE SNAPSHOT
+================================================================
+
+After successful deployment, first boot, and
+workstation identity verification, Windows was
+shut down normally.
+
+A VirtualBox recovery snapshot was created.
+
+Snapshot Name:
+
+P04_Deployed_Windows11_Baseline
+
+Virtual Machine:
+NS-DEPLOY-01
+
+Snapshot Purpose:
+
+Preserve the successfully deployed and configured
+Windows 11 Enterprise workstation before beginning
+post-deployment security, recovery, driver,
+and networking validation.
+
+VirtualBox confirmed the snapshot was created.
+
+RESULT: PASSED
+
+================================================================
+18. DEPLOYMENT TROUBLESHOOTING SUMMARY
+================================================================
+
+ISSUE 01:
+DISM Parameter Error
+
+Observed Error:
+87 - The parameter is incorrect.
+
+Cause:
+Missing space between DISM command parameters.
+
+Resolution:
+Corrected command syntax and repeated image application.
+
+Outcome:
+DISM completed at 100%.
+
+---------------------------------------------------------------
+
+ISSUE 02:
+Recovery Image Copy Parsing Error
+
+Observed Error:
+Parse Error
+
+Cause:
+Invalid trailing quotation mark in the XCOPY command.
+
+Resolution:
+Removed the incorrect quotation mark.
+
+---------------------------------------------------------------
+
+ISSUE 03:
+Recovery Image File Access
+
+Observed Error:
+The system cannot find the file specified.
+
+Finding:
+Winre.wim had hidden and system file attributes.
+
+Resolution:
+Used XCOPY with the /h parameter.
+
+Outcome:
+Recovery image successfully copied and verified.
+
+---------------------------------------------------------------
+
+ISSUE 04:
+Offline Windows Recovery Status
+
+Observed Status:
+Disabled
+
+Finding:
+REAgentC successfully registered the recovery
+directory, but offline status verification did not
+confirm Windows RE was enabled.
+
+Next Action:
+Validate and, if necessary, enable Windows RE
+during Phase 5.
+
+Status:
+PENDING POST-DEPLOYMENT VALIDATION
+
+================================================================
+19. EVIDENCE REGISTER
+================================================================
+
+P04_02A_Deployment_VM_Storage_Verification.png
+Target VM virtual storage configuration.
+
+P04_03_Deployment_WinPE_Disk_Inventory.png
+Source and destination disk identification.
+
+P04_04_Target_Disk_Partitioned.png
+UEFI/GPT target partition layout.
+
+P04_05_DISM_Image_Application_Success.png
+Successful DISM image deployment.
+
+P04_07_UEFI_Boot_Files_Created.png
+BCDBoot execution and EFI boot-file verification.
+
+P04_08_Recovery_And_Deployment_File_Check.png
+Windows loader and recovery image verification.
+
+P04_09_Windows_RE_Registration.png
+Offline Windows recovery registration.
+
+P04_10_Recovery_Partition_Finalized.png
+Recovery partition GPT configuration.
+
+P04_11_First_Boot_OOBE.png
+Successful first boot into Windows setup.
+
+P04_13_First_Desktop_Login.png
+Successful Windows desktop startup.
+
+P04_14_Deployed_OS_Identity.png
+Windows edition, build, and initial identity.
+
+P04_15_Deployment_Files_Verified.png
+Preserved Northstar configuration files.
+
+P04_16_Workstation_Identity_Verified.png
+Final computer name and account verification.
+
+P04_17_Deployed_Baseline_Snapshot.png
+Post-deployment VirtualBox recovery snapshot.
+
+Note:
+Retain only evidence files that have been saved
+and verified in the project folder.
+
+================================================================
+20. LIMITATIONS AND OUTSTANDING ITEMS
+================================================================
+
+The deployed Windows installation successfully booted
+and completed its initial workstation configuration.
+
+The following areas require Phase 5 validation:
+
+- TPM and security configuration
+- Microsoft Defender
+- Windows Firewall
+- BitLocker encryption behavior
+- Device driver health
+- Network connectivity
+- Windows Recovery operational status
+- Operating system integrity
+- Final technical handoff checks
+
+The successful first boot demonstrates that the
+deployed image is operational within VirtualBox.
+
+Deployment to physical enterprise hardware has not
+been tested.
+
+The environment does not include production Active
+Directory, Microsoft Intune, or a live organization.
+
+Windows 11 Enterprise Evaluation remains subject
+to Microsoft's evaluation licensing restrictions.
+
+================================================================
+21. PHASE 4 CONCLUSION
+================================================================
+
+A Windows 11 Enterprise Evaluation workstation
+was successfully deployed from a captured WIM image
+onto a separate virtual computer.
+
+The deployment included UEFI/GPT disk preparation,
+DISM image application, BCDBoot configuration,
+recovery partition preparation, and Windows OOBE.
+
+The deployed installation successfully started,
+accepted a local administrator account, retained
+its reference configuration files, and received
+its standardized workstation name.
+
+A baseline VirtualBox snapshot was created to
+preserve the successfully deployed environment.
+
+PHASE 4 RESULT:
+WINDOWS IMAGE DEPLOYMENT COMPLETED SUCCESSFULLY
+
+NEXT PHASE:
+05 - POST-DEPLOYMENT VALIDATION AND TROUBLESHOOTING
+
+This work is a self-directed, simulated IT Support
+portfolio project created by Ian Van Amberg.
+
+It does not represent actual employment, client work,
+or deployment within a production IT environment.
+
+================================================================
+END OF PHASE 4 TECHNICAL DOCUMENTATION
+================================================================
