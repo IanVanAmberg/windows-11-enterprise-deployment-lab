@@ -92,6 +92,15 @@ This was a simulated virtual lab with one reference VM and one target VM. No phy
 
 WinRE boot and recovery operations were not functionally tested. Windows update compliance and Defender definition freshness were not verified. The final Windows volume was deliberately decrypted for the lab; enterprise encryption and recovery-key management were outside scope. Results apply to the checks performed on this virtual workstation, not a production-readiness certification.
 
+## Complete Technical Evidence
+
+The README highlights the most important project results.
+For a more detailed record of the configuration,
+deployment, troubleshooting, and validation processes,
+the complete evidence archive is organized by phase.
+
+[Browse the Full Technical Evidence Archive](evidence-archive/)
+
 ## Attribution and licensing
 
 Created by **Ian Van Amberg**. Northstar Office Solutions is fictional. Windows 11 Enterprise Evaluation and the other software used remain subject to their respective license terms. This repository documents the lab and does not distribute Windows images, installation media, virtual disks, or software licenses. Product names and screenshots are used for identification and documentation; no vendor affiliation or endorsement is implied. No open-source license is granted by this README; any reuse license for original project materials must be stated separately.
